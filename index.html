@@ -4,18 +4,122 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Online Health Checkup System</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
 <style>
-body { font-family: Arial, sans-serif; background: #f0f0f0; margin:0; padding:0; }
-.container { max-width: 650px; margin: auto; padding: 20px; background: white; margin-top: 30px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
-h2 { text-align: center; }
-input, select, textarea, button { width: 100%; padding: 8px; margin: 5px 0; }
-button { cursor: pointer; }
-.hidden { display: none; }
-.record-card { border:1px solid #ccc; padding:10px; margin:5px; border-radius:5px; }
-.speaker { cursor:pointer; margin-left:5px; }
+/* Body + Gradient Background */
+body { 
+  font-family: Arial, sans-serif; 
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+  margin:0; padding:0;
+}
+
+/* Header / Banner */
+header { 
+  text-align:center; 
+  padding: 25px; 
+  font-family: 'Pacifico', cursive; 
+  font-size: 2.2em; 
+  background: linear-gradient(90deg,#00bfff,#009acd);
+  color:white; 
+  text-shadow:2px 2px 4px rgba(0,0,0,0.3);
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Container */
+.container { 
+  max-width: 650px; 
+  margin: 30px auto; 
+  padding: 25px; 
+  background: #ffffff; 
+  border-radius: 20px; 
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  transition: transform 0.3s; 
+}
+.container:hover{ transform: translateY(-5px); }
+
+/* Headings */
+h2,h3 { text-align:center; }
+
+/* Inputs + Select */
+input, select, textarea { 
+  width: 100%; 
+  padding: 12px; 
+  margin: 10px 0; 
+  border-radius: 10px; 
+  border:1px solid #ccc; 
+  font-size:1em;
+  transition: 0.3s;
+}
+input:focus, select:focus, textarea:focus { 
+  border: 2px solid #00bfff; 
+  box-shadow:0 0 8px rgba(0,191,255,0.5);
+  outline:none;
+}
+
+/* Buttons */
+button { 
+  width: 100%; 
+  padding: 12px; 
+  margin: 10px 0; 
+  border-radius: 10px; 
+  border:none; 
+  background: #00bfff; 
+  color:white; 
+  font-weight:bold; 
+  font-size:1em; 
+  cursor:pointer; 
+  transition: 0.3s; 
+}
+button:hover { 
+  background:#009acd; 
+  transform: scale(1.05); 
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Hidden */
+.hidden { display:none; }
+
+/* Record Cards */
+.record-card { 
+  border:1px solid #00bfff; 
+  padding:12px; 
+  margin:8px; 
+  border-radius:15px; 
+  background:#f0f8ff; 
+  box-shadow:0 2px 8px rgba(0,0,0,0.1); 
+  animation: popin 0.4s ease forwards;
+}
+
+/* Pop-in animation */
+@keyframes popin { 
+  0% {opacity:0; transform:scale(0.9);} 
+  100% {opacity:1; transform:scale(1);}
+}
+
+/* Language Popup */
+.language-popup { 
+  position:fixed; top:0; left:0; width:100%; height:100%; 
+  background:rgba(0,0,0,0.7); display:flex; justify-content:center; align-items:center; 
+  z-index:9999; 
+}
+.language-popup div { 
+  background:white; padding:40px; border-radius:20px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,0.2);
+}
+.language-popup button { margin:10px; width:45%; }
 </style>
 </head>
 <body>
+
+<header>Online Health Checkup System</header>
+
+<!-- Language Popup -->
+<div class="language-popup" id="langPopup">
+  <div>
+    <h3>Select Language / भाषा छान्नुहोस्</h3>
+    <button onclick="setLang('en')">English</button>
+    <button onclick="setLang('ne')">नेपाली</button>
+  </div>
+</div>
 
 <div class="container" id="loginDiv">
   <h2 id="loginTitle">Login</h2>
@@ -27,13 +131,7 @@ button { cursor: pointer; }
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
   <button onclick="login()">Login</button>
-  <button onclick="speakText('login')">🔊</button>
   <p id="loginMsg" style="color:red;"></p>
-  <label>Select Language:</label>
-  <select id="languageSelect" onchange="setLanguage()">
-    <option value="en">English</option>
-    <option value="ne">नेपाली</option>
-  </select>
 </div>
 
 <div class="container hidden" id="patientDiv">
@@ -45,7 +143,6 @@ button { cursor: pointer; }
   <label id="diseaseLabel">Enter Disease:</label>
   <input type="text" id="disease">
   <button onclick="saveAppointment()" id="setAppBtn">Set Appointment</button>
-  <button onclick="speakText('appointment')">🔊</button>
   <h3 id="recordsTitle">Your Records</h3>
   <div id="records"></div>
   <button onclick="logout()" id="logoutBtn">Logout</button>
@@ -70,7 +167,7 @@ button { cursor: pointer; }
 </div>
 
 <script>
-// ---------------- Doctor + Recommendation Data ----------------
+// ---------------- Doctors + Recommendations ----------------
 const doctors = [
   { username: 'dr_sunil', password: '1234', name: 'Dr. Sunil Sharma', capability: 'Cardiologist' },
   { username: 'dr_rita', password: '5678', name: 'Dr. Rita Koirala', capability: 'Dermatologist' },
@@ -85,18 +182,14 @@ const recommendations = {
 
 // ---------------- Multilingual Texts ----------------
 const texts = {
-  en: {
-    login:'Login', username:'Username', password:'Password', patientDashboard:'Patient Dashboard', doctorDashboard:'Doctor Dashboard',
-    appointment:'Appointment Date & Time', disease:'Disease', prescription:'Prescription & Advice', precautions:'Precautions & Conclusion',
-    selectDoctor:'Select Doctor', yourRecords:'Your Records', logout:'Logout', setAppointment:'Set Appointment',
-    patientsAssigned:'Patients Assigned to You', addPrescription:'Add/Update Prescription', patientUsername:'Patient Username'
-  },
-  ne: {
-    login:'लगइन', username:'प्रयोगकर्ता नाम', password:'पासवर्ड', patientDashboard:'रोगी ड्यासबोर्ड', doctorDashboard:'डाक्टर ड्यासबोर्ड',
-    appointment:'अपोइन्टमेन्ट मिति र समय', disease:'रोग', prescription:'प्रिस्क्रिप्सन र सल्लाह', precautions:'सावधानी र निष्कर्ष',
-    selectDoctor:'डाक्टर चयन गर्नुहोस्', yourRecords:'तपाईंको रेकर्ड', logout:'लगआउट', setAppointment:'अपोइन्टमेन्ट सेट गर्नुहोस्',
-    patientsAssigned:'तपाईंका रोगी', addPrescription:'प्रिस्क्रिप्सन/सल्लाह थप्नुहोस्', patientUsername:'रोगी नाम'
-  }
+  en: { login:'Login', username:'Username', password:'Password', patientDashboard:'Patient Dashboard', doctorDashboard:'Doctor Dashboard',
+         appointment:'Appointment Date & Time', disease:'Disease', prescription:'Prescription & Advice', precautions:'Precautions & Conclusion',
+         selectDoctor:'Select Doctor', yourRecords:'Your Records', logout:'Logout', setAppointment:'Set Appointment',
+         patientsAssigned:'Patients Assigned to You', addPrescription:'Add/Update Prescription', patientUsername:'Patient Username'},
+  ne: { login:'लगइन', username:'प्रयोगकर्ता नाम', password:'पासवर्ड', patientDashboard:'रोगी ड्यासबोर्ड', doctorDashboard:'डाक्टर ड्यासबोर्ड',
+        appointment:'अपोइन्टमेन्ट मिति र समय', disease:'रोग', prescription:'प्रिस्क्रिप्सन र सल्लाह', precautions:'सावधानी र निष्कर्ष',
+        selectDoctor:'डाक्टर चयन गर्नुहोस्', yourRecords:'तपाईंको रेकर्ड', logout:'लगआउट', setAppointment:'अपोइन्टमेन्ट सेट गर्नुहोस्',
+        patientsAssigned:'तपाईंका रोगी', addPrescription:'प्रिस्क्रिप्सन/सल्लाह थप्नुहोस्', patientUsername:'रोगी नाम'}
 };
 
 // ---------------- Global Variables ----------------
@@ -105,8 +198,14 @@ let currentDoctor = null;
 let currentLang = 'en';
 
 // ---------------- Language Functions ----------------
-function setLanguage(){
-  currentLang = document.getElementById('languageSelect').value;
+function setLang(lang){
+  currentLang = lang;
+  document.getElementById('langPopup').classList.add('hidden');
+  speakText('login'); // auto pronunciation
+  updateTextUI();
+}
+
+function updateTextUI(){
   document.getElementById('username').placeholder = texts[currentLang].username;
   document.getElementById('password').placeholder = texts[currentLang].password;
   document.getElementById('loginTitle').textContent = texts[currentLang].login;
@@ -148,7 +247,7 @@ function login() {
       document.getElementById('doctorDiv').classList.remove('hidden');
       document.getElementById('doctorInfo').innerHTML = `<p>Welcome ${doctor.name} (${doctor.capability})</p>`;
       showDoctorPatients();
-    } else { msg.textContent = 'Invalid Doctor Credentials'; }
+    } else { msg.textContent = currentLang==='ne'?'डाक्टर क्रेडेन्सियल गलत':'Invalid Doctor Credentials'; }
   } else {
     if(!user||!pass){ msg.textContent=currentLang==='ne'?'नाम र पासवर्ड प्रविष्ट गर्नुहोस्':'Enter username & password'; return;}
     currentUser = user;
@@ -192,7 +291,6 @@ function saveAppointment(){
   localStorage.setItem('records',JSON.stringify(records));
   alert(currentLang==='ne'?'अपोइन्टमेन्ट सफल':'Appointment saved');
   loadPatientRecords();
-  setAppointmentAlarm(date,currentUser);
 }
 
 // ---------------- Patient Records ----------------
@@ -243,13 +341,6 @@ function saveDoctorData(){
   localStorage.setItem('records',JSON.stringify(records));
   alert(currentLang==='ne'?'डेटा सुरक्षित':'Data saved');
   showDoctorPatients();
-}
-
-// ---------------- Appointment Alarm ----------------
-function setAppointmentAlarm(dateStr,user){
-  const appointTime = new Date(dateStr).getTime();
-  const diff = appointTime - new Date().getTime();
-  if(diff>0){ setTimeout(()=>{ alert(`${currentLang==='ne'?'अपोइन्टमेन्ट स्मरण':'Appointment Reminder'} for ${user}!`); }, diff);}
 }
 </script>
 </body>
